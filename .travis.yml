@@ -1,8 +1,8 @@
 #指定运行环境
-language: golang
-#指定nodejs版本，可以指定多个
+language: go
+#指定go版本，可以指定多个
 node_js:
-  - 1.9
+  - 1.9.2
 
 #运行的脚本命令
 script:
