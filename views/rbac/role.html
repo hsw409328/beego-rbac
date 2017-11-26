@@ -1,0 +1,322 @@
+[[[template "public/head.html" .]]]
+<fieldset class="layui-elem-field">
+    <legend style="font-size: 13px">操作</legend>
+    <div class="layui-field-box">
+        <button class="layui-btn" id="addDivBtn">添加角色</button>
+    </div>
+</fieldset>
+
+<div style="display: none;padding: 10px;" id="addFormDiv">
+    <form class="layui-form" action="">
+        <input type="hidden" value="" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" autocomplete="off" placeholder="请输入角色名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色类型</label>
+            <div class="layui-input-block">
+                <select name="pid">
+                    <option value="0">高级</option>
+                    <option value="1">普通</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否启用</label>
+            <div class="layui-input-block">
+                <input type="checkbox" checked="" name="status" lay-skin="switch" lay-filter="switchTest"
+                       lay-text="ON|OFF">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" autocomplete="off" placeholder="请输入角色备注"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="roleAddBtn">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="display: none;padding: 10px" id="configFormDiv">
+    <form action="" class="layui-form">
+        [[[range $k,$v := .NodeResult]]]
+        [[[if eq $v.Level 1]]]
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 0px">
+                <input type="checkbox" name="auth[]" value="[[[$v.Id]]]_[[[$v.Level]]]_[[[$v.Pid]]]" pid="[[[$v.Pid]]]"
+                       title="〈项目〉[[[$v.Title]]]" id-cls="[[[$v.Id]]]"
+                       lay-skin="primary" lay-filter="rbacCheckbox">
+            </div>
+        </div>
+        [[[end]]]
+        [[[if eq $v.Level 2]]]
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 40px">
+                <input type="checkbox" name="auth[]" value="[[[$v.Id]]]_[[[$v.Level]]]_[[[$v.Pid]]]" pid="[[[$v.Pid]]]"
+                       title="〈模块〉[[[$v.Title]]]" lay-skin="primary" lay-filter="rbacCheckbox"
+                       id-cls="[[[$v.Id]]]">
+            </div>
+        </div>
+        [[[end]]]
+        [[[if eq $v.Level 3]]]
+        <div style="margin-left: 80px;float: left;margin-right: -60px">
+            <input type="checkbox" name="auth[]" value="[[[$v.Id]]]_[[[$v.Level]]]_[[[$v.Pid]]]" pid="[[[$v.Pid]]]"
+                   title="[[[$v.Title]]]" lay-skin="primary" lay-filter="rbacCheckbox"
+                   id-cls="[[[$v.Id]]]">
+        </div>
+        [[[end]]]
+        [[[end]]]
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="configAddBtn">保存</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+<script type="text/html" id="operationTpl">
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="configAuth">配置权限</a>
+</script>
+
+<script type="text/html" id="enableTpl">
+{{# if (d.Status==0){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+{{# } }}
+{{# if (d.Status==1){ }}
+<a class="layui-btn layui-btn-xs">已启用</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="roleTpl">
+{{# if (d.Pid==0){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">高级</a>
+{{# } }}
+{{# if (d.Pid==1){ }}
+<a class="layui-btn layui-btn-xs">普通</a>
+{{# } }}
+</script>
+
+<script>
+layui.use(['form', 'table'], function () {
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    var globalRoleId = '';
+
+form.on('checkbox(rbacCheckbox)', function (data) {
+    var d = data.value.split('_')
+    var v = d[0];
+    var l = d[1];
+    var pid = d[2];
+    var sts = data.elem.checked;
+if (l == 1) {
+if (sts == false) {
+$('*[lay-filter="rbacCheckbox"]').each(function () {
+    $(this)[0].checked = false;
+    $(this).next('.layui-form-checkbox').removeClass('layui-form-checked')
+});
+}else{
+    $('*[lay-filter="rbacCheckbox"]').each(function () {
+        $(this)[0].checked = true;
+        $(this).next('.layui-form-checkbox').addClass('layui-form-checked')
+    });
+}
+}else if(l == 2){
+if (sts == false) {
+$('*[pid="' + v + '"]').each(function () {
+    $(this)[0].checked = false;
+    $(this).next('.layui-form-checkbox').removeClass('layui-form-checked')
+});
+} else {
+    $('*[pid="' + v + '"]').each(function () {
+        $(this)[0].checked = true;
+        $(this).next('.layui-form-checkbox').addClass('layui-form-checked')
+    });
+}
+
+    var i = 0;
+    $('*[lay-filter="rbacCheckbox"]').each(function () {
+        if ($(this)[0].checked == true) {
+            ++i;
+        }
+    });
+if (i == 0){
+    $('*[pid="0"]')[0].checked = false;
+    $('*[pid="0"]').next('.layui-form-checkbox').removeClass('layui-form-checked')
+}else{
+    $('*[pid="0"]')[0].checked = true;
+    $('*[pid="0"]').next('.layui-form-checkbox').addClass('layui-form-checked')
+}
+
+}else if(l == 3){
+
+
+    var i = 0;
+    $('*[lay-filter="rbacCheckbox"]').each(function () {
+        if ($(this)[0].checked == true) {
+            ++i;
+        }
+    });
+if (i == 0) {
+    $('*[pid="0"]')[0].checked = false;
+    $('*[pid="0"]').next('.layui-form-checkbox').removeClass('layui-form-checked')
+} else {
+    $('*[pid="0"]')[0].checked = true;
+    $('*[pid="0"]').next('.layui-form-checkbox').addClass('layui-form-checked')
+}
+
+    var t = 0;
+    $('*[pid="' + pid + '"]').each(function () {
+        if ($(this)[0].checked == true) {
+            ++t;
+        }
+    });
+
+if(t == 0){
+    $('*[id-cls="' + pid + '"]')[0].checked = false;
+    $('*[id-cls="' + pid + '"]').next('.layui-form-checkbox').removeClass('layui-form-checked')
+}else{
+    $('*[id-cls="' + pid + '"]')[0].checked = true;
+    $('*[id-cls="' + pid + '"]').next('.layui-form-checkbox').addClass('layui-form-checked')
+}
+}
+
+});
+
+    $('#addDivBtn').click(function () {
+        $('input[name="id"]').val("");
+        $('button[type="reset"]').click();
+        layer.open({
+            type: 1,
+            area: "500px",
+            title: "添加角色",
+            content: $('#addFormDiv')
+        });
+    });
+
+    //监听提交
+form.on('submit(roleAddBtn)', function (data) {
+if (typeof(data.field.status) == 'undefined') {
+    data.field.status = 0;
+} else {
+    data.field.status = 1;
+}
+    $.post('/RoleAdd', data.field, function (data) {
+        layer.closeAll();
+        table.reload('tableId', {});
+    });
+    return false;
+});
+
+form.on('submit(configAddBtn)', function (data) {
+    params = '';
+
+$('*[lay-filter="rbacCheckbox"]').each(function () {
+if ($(this)[0].checked == true) {
+    params += $(this).val() + ",";
+}
+});
+    if (params != "") {
+        params = params.substring(0, params.length - 1);
+    }
+$.post('/AccessAdd', {"params": params, "role_id": globalRoleId}, function (data) {
+if(data.code == 0){
+layer.msg("配置成功",{"icon": 1});
+    setTimeout(function () {
+        layer.closeAll();
+    }, 500);
+}else{
+    layer.msg("配置失败，你可能没有权限", {"icon": 2});
+}
+});
+    return false;
+});
+
+
+table.render({
+    elem: '#tableId'
+    , url: '/RoleListJson'
+    , cols: [[
+{field: 'Id', title: 'ID', sort: true}
+    , {field: 'Name', title: '角色名称'}
+    , {field: 'Pid', title: '角色类型', templet: "#roleTpl"}
+    , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
+    , {field: 'Remark', title: '备注'}
+    , {fixed: 'right', toolbar: '#operationTpl'}
+]]
+    , page: false
+    ,limit: 1000
+});
+
+table.on('tool(tableId)', function (obj) {
+    var data = obj.data;
+    var layEvent = obj.event;
+    var tr = obj.tr;
+
+if (layEvent == "edit") {
+    $('button[type="reset"]').click();
+    layer.open({
+        type: 1,
+        area: "500px",
+        title: "修改角色",
+        content: $('#addFormDiv')
+    });
+    $('input[name="id"]').val(data.Id);
+    $('select[name="pid"]').val(data.Pid);
+    $('input[name="name"]').val(data.Name);
+if (data.Status == 0) {
+    $('input[name="status"]').attr('checked', false);
+} else {
+    $('input[name="status"]').attr('checked', true);
+}
+
+    $('input[name="remark"]').val(data.Remark);
+    form.render("select");
+    form.render("checkbox");
+}
+if (layEvent == "delete") {
+$.post('/RoleAdd', {"id": data.Id}, function (data) {
+    layer.msg("删除成功", {"icon": 1});
+table.reload('tableId', {});
+});
+}
+if (layEvent == "configAuth") {
+    $('*[lay-filter="rbacCheckbox"]').each(function () {
+        $(this)[0].checked = false;
+        $(this).next('.layui-form-checkbox').removeClass('layui-form-checked')
+    });
+    globalRoleId = data.Id
+$.get('/AccessListJson?role_id=' + data.Id, function (data) {
+    var d = data.data;
+    for (var o in d) {
+        console.log(d[o])
+        $('*[id-cls="' + d[o].NodeId + '"]')[0].checked = true;
+        $('*[id-cls="' + d[o].NodeId + '"]').next('.layui-form-checkbox').addClass('layui-form-checked');
+    }
+layer.open({
+    type: 1,
+    area: "500px",
+    title: "配置权限",
+    content: $('#configFormDiv')
+});
+});
+}
+});
+});
+</script>
+[[[template "public/foot.html" .]]]

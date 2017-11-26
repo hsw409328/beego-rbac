@@ -1,0 +1,230 @@
+[[[template "public/head.html" .]]]
+<fieldset class="layui-elem-field">
+    <legend style="font-size: 13px">操作</legend>
+    <div class="layui-field-box">
+        <button class="layui-btn" id="addDivBtn">添加权限</button>
+    </div>
+</fieldset>
+
+<div style="display: none;padding: 10px;" id="addFormDiv">
+    <form class="layui-form" action="">
+        <input type="hidden" value="" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">英文名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" autocomplete="off" placeholder="请输入英文名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">中文名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" autocomplete="off" placeholder="请输入中文名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">归属类型</label>
+            <div class="layui-input-block">
+                <select name="level">
+                    <option value="1">项目</option>
+                    <option value="2">模块</option>
+                    <option value="3">操作</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">归属父级</label>
+            <div class="layui-input-block">
+                <select name="pid">
+                    <option value="0">根节点</option>
+                    [[[range $k,$v := .ParentNode ]]]
+                    [[[if eq $v.Level 1]]]
+                    <option value="[[[$v.Id]]]">[[[$v.Title]]]</option>
+                    [[[end]]]
+                    [[[if eq $v.Level 2]]]
+                    <option value="[[[$v.Id]]]">&nbsp;&nbsp;&nbsp;&nbsp;|-&nbsp;[[[$v.Title]]]</option>
+                    [[[end]]]
+                    [[[end]]]
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否启用</label>
+            <div class="layui-input-block">
+                <input type="checkbox" checked="" name="status" lay-skin="switch" lay-filter="switchTest"
+                       lay-text="ON|OFF">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否显示</label>
+            <div class="layui-input-block">
+                <input type="checkbox" checked="" name="is_show" lay-skin="switch" lay-filter="switchTest1"
+                       lay-text="ON|OFF">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序权限</label>
+            <div class="layui-input-block">
+                <input type="text" name="sort" autocomplete="off" placeholder="请输入排序权限"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" autocomplete="off" placeholder="请输入权限备注"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="roleAddBtn">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+<script type="text/html" id="operationTpl">
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+</script>
+
+<script type="text/html" id="enableTpl">
+{{# if (d.Status==0){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+{{# } }}
+{{# if (d.Status==1){ }}
+<a class="layui-btn layui-btn-xs">已启用</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="showTpl">
+{{# if (d.IsShow==0){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+{{# } }}
+{{# if (d.IsShow==1){ }}
+<a class="layui-btn layui-btn-xs">已启用</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="titleTpl">
+{{# if (d.Level==3){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+{{# } }}
+{{# if (d.Level==2){ }}
+<a class="layui-btn layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+{{# } }}
+{{# if (d.Level==1){ }}
+<a class="layui-btn layui-btn-warm  layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+{{# } }}
+</script>
+
+<script type="text/html" id="levelTpl">
+{{# if (d.Level==3){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">操作</a>
+{{# } }}
+{{# if (d.Level==2){ }}
+<a class="layui-btn layui-btn-xs">模块</a>
+{{# } }}
+{{# if (d.Level==1){ }}
+<a class="layui-btn layui-btn-warm  layui-btn-xs">项目</a>
+{{# } }}
+</script>
+
+<script>
+layui.use(['form', 'table'], function () {
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    $('#addDivBtn').click(function () {
+        $('input[name="id"]').val("");
+        $('button[type="reset"]').click();
+        layer.open({
+            type: 1,
+            area: "500px",
+            title: "添加权限",
+            content: $('#addFormDiv')
+        });
+    });
+
+    //监听提交
+form.on('submit(roleAddBtn)', function (data) {
+if (typeof(data.field.status) == 'undefined') {
+    data.field.status = 0;
+} else {
+    data.field.status = 1;
+}
+    $.post('/NodeAdd', data.field, function (data) {
+        layer.closeAll();
+        window.location.reload();
+    });
+    return false;
+});
+
+table.render({
+    elem: '#tableId'
+    , url: '/NodeListJson'
+    , cols: [[
+    {field: 'Id', title: 'ID', sort: true}
+    , {field: 'Name', title: '英文名称'}
+    , {field: 'Title', title: '中文名称', templet: "#titleTpl"}
+    // , {field: 'Pid', title: '父级'}
+    , {field: 'Level', title: '层次', templet: "#levelTpl"}
+    , {field: 'Sort', title: '排序'}
+    , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
+    , {field: 'IsShow', title: '是否显示', templet: "#showTpl"}
+    , {field: 'Remark', title: '备注'}
+    , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
+]]
+    , page: false
+    ,limit: 1000
+});
+
+table.on('tool(tableId)', function (obj) {
+    var data = obj.data;
+    var layEvent = obj.event;
+    var tr = obj.tr;
+
+if (layEvent == "edit") {
+    $('button[type="reset"]').click();
+    layer.open({
+        type: 1,
+        area: "500px",
+        title: "修改权限",
+        content: $('#addFormDiv')
+    });
+    $('input[name="id"]').val(data.Id);
+    $('select[name="pid"]').val(data.Pid);
+    $('select[name="level"]').val(data.Level);
+    $('input[name="name"]').val(data.Name);
+    $('input[name="title"]').val(data.Title);
+    $('input[name="sort"]').val(data.Sort);
+    if (data.Status == 0) {
+        $('input[name="status"]').attr('checked', false);
+    } else {
+        $('input[name="status"]').attr('checked', true);
+    }
+if (data.IsShow == 0) {
+    $('input[name="is_show"]').attr('checked', false);
+} else {
+    $('input[name="is_show"]').attr('checked', true);
+}
+
+    $('input[name="remark"]').val(data.Remark);
+    form.render("select");
+    form.render("checkbox");
+}
+if (layEvent == "delete") {
+$.post('/NodeDelete', {"id": data.Id}, function (data) {
+    layer.msg("删除成功", {"icon": 1});
+table.reload('tableId', {});
+})
+}
+});
+});
+</script>
+[[[template "public/foot.html" .]]]

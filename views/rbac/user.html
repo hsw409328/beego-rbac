@@ -1,0 +1,147 @@
+[[[template "public/head.html" .]]]
+<fieldset class="layui-elem-field">
+    <legend style="font-size: 13px">操作</legend>
+    <div class="layui-field-box">
+        <button class="layui-btn" id="addDivBtn">添加用户</button>
+    </div>
+</fieldset>
+
+<div style="display: none;padding: 10px;" id="addFormDiv">
+    <form class="layui-form" action="">
+        <input type="hidden" value="" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">登录用户</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" autocomplete="off" placeholder="请输入登录用户"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">登录密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" autocomplete="off" placeholder="请输入登录密码"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">归属角色</label>
+            <div class="layui-input-block">
+                <select name="role_id">
+                    [[[range $k,$v := .RoleResult ]]]
+                    <option value="[[[$v.Id]]]">[[[$v.Name]]]</option>
+                    [[[end]]]
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否启用</label>
+            <div class="layui-input-block">
+                <input type="checkbox" checked="" name="status" lay-skin="switch" lay-filter="switchTest"
+                       lay-text="ON|OFF">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="roleAddBtn">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+<script type="text/html" id="operationTpl">
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+</script>
+
+<script type="text/html" id="enableTpl">
+{{# if (d.Status==0){ }}
+<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+{{# } }}
+{{# if (d.Status==1){ }}
+<a class="layui-btn layui-btn-xs">已启用</a>
+{{# } }}
+</script>
+
+<script>
+layui.use(['form', 'table'], function () {
+    var table = layui.table;
+    var form = layui.form;
+    var $ = layui.jquery;
+    $('#addDivBtn').click(function () {
+        $('input[name="id"]').val("");
+        $('button[type="reset"]').click();
+        layer.open({
+            type: 1,
+            area: "500px",
+            title: "添加用户",
+            content: $('#addFormDiv')
+        });
+    });
+
+    //监听提交
+form.on('submit(roleAddBtn)', function (data) {
+if (typeof(data.field.status) == 'undefined') {
+    data.field.status = 0;
+} else {
+    data.field.status = 1;
+}
+    $.post('/UserAdd', data.field, function (data) {
+        layer.closeAll();
+        window.location.reload();
+    });
+    return false;
+});
+
+table.render({
+    elem: '#tableId'
+    , url: '/UserListJson'
+    , cols: [[
+    {field: 'Id', title: 'ID', sort: true}
+    , {field: 'Username', title: '登录用户'}
+    , {field: 'Password', title: '登录密码'}
+    , {field: 'Loginip', title: '登录IP'}
+    , {field: 'Name', title: '角色昵称'}
+    , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
+    , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
+]]
+    , page: false
+});
+
+table.on('tool(tableId)', function (obj) {
+    var data = obj.data;
+    var layEvent = obj.event;
+    var tr = obj.tr;
+
+if (layEvent == "edit") {
+    $('button[type="reset"]').click();
+    layer.open({
+        type: 1,
+        area: "500px",
+        title: "修改用户",
+        content: $('#addFormDiv')
+    });
+    $('input[name="id"]').val(data.Id);
+    $('input[name="username"]').val(data.Username);
+    $('input[name="password"]').val(data.Password);
+    $('select[name="role_id"]').val(data.RoleId);
+    if (data.Status == 0) {
+        $('input[name="status"]').attr('checked', false);
+    } else {
+        $('input[name="status"]').attr('checked', true);
+    }
+    form.render("select");
+    form.render("checkbox");
+}
+if (layEvent == "delete") {
+$.post('/UserDelete', {"id": data.Id}, function (data) {
+    layer.msg("删除成功", {"icon": 1});
+table.reload('tableId', {});
+})
+}
+});
+});
+</script>
+[[[template "public/foot.html" .]]]

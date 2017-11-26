@@ -1,0 +1,53 @@
+[[[template "public/head.html" .]]]
+<div style="display: none;padding: 10px" id="loginFormDiv">
+    <form class="layui-form" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">登录用户</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" autocomplete="off" placeholder="请输入登录用户"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">登录密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" autocomplete="off" placeholder="请输入登录密码"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="loginAddBtn">登录</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['form', 'table'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var $ = layui.jquery;
+        layer.open({
+            type: 1,
+            closeBtn: false,
+            area: "500px",
+            move: false,
+            content: $('#loginFormDiv')
+        });
+        form.on('submit(loginAddBtn)', function (data) {
+            $.post('/LoginSubmit', data.field, function (data) {
+                if (data.code == 0) {
+                    layer.msg(data.error_msg, {"icon": 1});
+                    setTimeout(function () {
+                        window.location.href = "/";
+                    }, 300);
+                } else {
+                    layer.msg(data.error_msg, {"icon": 2});
+                }
+            });
+            return false;
+        });
+    });
+</script>
+[[[template "public/foot.html" .]]]
