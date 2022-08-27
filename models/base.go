@@ -12,7 +12,7 @@ var (
 func init() {
 	//orm.Debug = true
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-	orm.RegisterDataBase("default", "mysql", "root:@tcp(127.0.0.1:3306)/rbac?charset=utf8", 30)
+	orm.RegisterDataBase("default", "mysql", "root:123456@tcp(127.0.0.1:3306)/rbac?charset=utf8", 30)
 	orm.RegisterModel(new(RbacAccess), new(RbacNode), new(RbacRole), new(RbacRoleUser), new(RbacUser))
 	o = orm.NewOrm()
 }

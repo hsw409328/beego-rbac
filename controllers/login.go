@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"beego-project/models"
+	"beego-rbac/models"
 )
 
 type LoginController struct {
