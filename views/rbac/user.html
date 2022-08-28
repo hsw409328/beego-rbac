@@ -57,91 +57,96 @@
 </script>
 
 <script type="text/html" id="enableTpl">
-{{# if (d.Status==0){ }}
-<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
-{{# } }}
-{{# if (d.Status==1){ }}
-<a class="layui-btn layui-btn-xs">已启用</a>
-{{# } }}
+    {{# if (d.Status==0){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+    {{# } }}
+    {{# if (d.Status==1){ }}
+    <a class="layui-btn layui-btn-xs">已启用</a>
+    {{# } }}
 </script>
 
 <script>
-layui.use(['form', 'table'], function () {
-    var table = layui.table;
-    var form = layui.form;
-    var $ = layui.jquery;
-    $('#addDivBtn').click(function () {
-        $('input[name="id"]').val("");
-        $('button[type="reset"]').click();
-        layer.open({
-            type: 1,
-            area: "500px",
-            title: "添加用户",
-            content: $('#addFormDiv')
+    layui.use(['form', 'table'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var $ = layui.jquery;
+        $('#addDivBtn').click(function () {
+            $('input[name="id"]').val("");
+            $('button[type="reset"]').click();
+            layer.open({
+                type: 1,
+                area: "500px",
+                title: "添加用户",
+                content: $('#addFormDiv')
+            });
+        });
+
+        //监听提交
+        form.on('submit(roleAddBtn)', function (data) {
+            if (typeof (data.field.status) == 'undefined') {
+                data.field.status = 0;
+            } else {
+                data.field.status = 1;
+            }
+            $.post('/UserAdd', data.field, function (data) {
+                if (data.code == 0) {
+                    layer.closeAll();
+                    layer.msg("操作成功", {"icon": 1});
+                    table.reload('tableId', {});
+                } else {
+                    layer.msg("操作失败，你可能没有权限", {"icon": 2});
+                }
+            });
+            return false;
+        });
+
+        table.render({
+            elem: '#tableId'
+            , url: '/UserListJson'
+            , cols: [[
+                {field: 'Id', title: 'ID', sort: true}
+                , {field: 'Username', title: '登录用户'}
+                , {field: 'Password', title: '登录密码'}
+                , {field: 'Loginip', title: '登录IP'}
+                , {field: 'Name', title: '角色昵称'}
+                , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
+                , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
+            ]]
+            , page: true
+        });
+
+        table.on('tool(tableId)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+
+            if (layEvent == "edit") {
+                $('button[type="reset"]').click();
+                layer.open({
+                    type: 1,
+                    area: "500px",
+                    title: "修改用户",
+                    content: $('#addFormDiv')
+                });
+                $('input[name="id"]').val(data.Id);
+                $('input[name="username"]').val(data.Username);
+                $('input[name="password"]').val(data.Password);
+                $('select[name="role_id"]').val(data.RoleId);
+                if (data.Status == 0) {
+                    $('input[name="status"]').attr('checked', false);
+                } else {
+                    $('input[name="status"]').attr('checked', true);
+                }
+                form.render("select");
+                form.render("checkbox");
+            }
+            if (layEvent == "delete") {
+                $.post('/UserDelete', {"id": data.Id}, function (data) {
+                    layer.msg("删除成功", {"icon": 1});
+                    table.reload('tableId', {});
+                })
+            }
         });
     });
-
-    //监听提交
-form.on('submit(roleAddBtn)', function (data) {
-if (typeof(data.field.status) == 'undefined') {
-    data.field.status = 0;
-} else {
-    data.field.status = 1;
-}
-    $.post('/UserAdd', data.field, function (data) {
-        layer.closeAll();
-        window.location.reload();
-    });
-    return false;
-});
-
-table.render({
-    elem: '#tableId'
-    , url: '/UserListJson'
-    , cols: [[
-    {field: 'Id', title: 'ID', sort: true}
-    , {field: 'Username', title: '登录用户'}
-    , {field: 'Password', title: '登录密码'}
-    , {field: 'Loginip', title: '登录IP'}
-    , {field: 'Name', title: '角色昵称'}
-    , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
-    , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
-]]
-    , page: false
-});
-
-table.on('tool(tableId)', function (obj) {
-    var data = obj.data;
-    var layEvent = obj.event;
-    var tr = obj.tr;
-
-if (layEvent == "edit") {
-    $('button[type="reset"]').click();
-    layer.open({
-        type: 1,
-        area: "500px",
-        title: "修改用户",
-        content: $('#addFormDiv')
-    });
-    $('input[name="id"]').val(data.Id);
-    $('input[name="username"]').val(data.Username);
-    $('input[name="password"]').val(data.Password);
-    $('select[name="role_id"]').val(data.RoleId);
-    if (data.Status == 0) {
-        $('input[name="status"]').attr('checked', false);
-    } else {
-        $('input[name="status"]').attr('checked', true);
-    }
-    form.render("select");
-    form.render("checkbox");
-}
-if (layEvent == "delete") {
-$.post('/UserDelete', {"id": data.Id}, function (data) {
-    layer.msg("删除成功", {"icon": 1});
-table.reload('tableId', {});
-})
-}
-});
-});
 </script>
 [[[template "public/foot.html" .]]]

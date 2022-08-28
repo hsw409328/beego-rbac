@@ -15,7 +15,7 @@ var (
 	leftTreeResult = []orm.Params{}
 )
 
-func (this *BaseController) SessionRbac(id int) {
+func (this *BaseController) SessionRbacNav(id int) {
 	//根据用户ID查询出角色
 	result := models.RbacRoleUser{UserId: id}
 	M.Object().Read(&result)
@@ -33,6 +33,26 @@ func (this *BaseController) SessionRbac(id int) {
 	leftTreeResult = []orm.Params{}
 	tmpResult := this.TreeNodeRecursion(accessResult, 0)
 	this.SetSession("LeftNavResult", tmpResult)
+}
+
+func (this *BaseController) SessionRbacAll(id int) {
+	//根据用户ID查询出角色
+	result := models.RbacRoleUser{UserId: id}
+	M.Object().Read(&result)
+	//查询出角色信息
+	roleResult := models.RbacRole{Id: result.RoleId}
+	M.Object().Read(&roleResult)
+	this.SetSession("RoleInfo", roleResult)
+	//根据角色查询出权限
+	var accessResult []orm.Params
+	M.Object().Raw("select t1.id,t1.name,t1.title,t1.sort,t1.pid,t1.level,t.role_id" +
+		" from rbac_access t inner join rbac_node t1" +
+		" on t.node_id=t1.id " +
+		" where t1.status=1 and t.role_id='" + strconv.Itoa(roleResult.Id) + "' ").Values(&accessResult)
+
+	leftTreeResult = []orm.Params{}
+	tmpResult := this.TreeNodeRecursion(accessResult, 0)
+	this.SetSession("LoginUserAllRBACResult", tmpResult)
 }
 
 func (this *BaseController) TreeNodeRecursion(data []orm.Params, pid int) []orm.Params {

@@ -31,7 +31,7 @@
                         <br>
                         <p>
                             开发人员：<a href="https://www.51hsw.com"
-                                    class="layui-btn layui-btn-warm layui-btn-sm">Mr.Hao</a>
+                                        class="layui-btn layui-btn-warm layui-btn-sm">Mr.Hao</a>
                         </p>
                         <br>
                         <p>
@@ -40,12 +40,12 @@
                         <br>
                         <p>
                             码云地址：<a href="https://gitee.com/haosw"
-                                    class="layui-btn layui-btn-normal layui-btn-sm"> https://gitee.com/haosw</a>
+                                        class="layui-btn layui-btn-normal layui-btn-sm"> https://gitee.com/haosw</a>
                         </p>
                         <br>
                         <p>
                             Git&nbsp;&nbsp;地址：<a href="https://github.com/hsw409328"
-                                                 class="layui-btn layui-btn-normal layui-btn-sm">
+                                                   class="layui-btn layui-btn-normal layui-btn-sm">
                             https://github.com/hsw409328</a>
                         </p>
                     </div>
@@ -114,12 +114,12 @@
         var active = {
             tabAdd: function (othis) {
                 var src = "<iframe src='" + othis.attr("data-src") + "'  scrolling=\"no\" frameborder=\"0\"" +
-                        " class=\"ly-iframe admin-iframe\" width='100%'" +
-                        " height='" + ($('#layui-body-content').height() - 90) + "'></iframe>";
+                    " class=\"ly-iframe admin-iframe\" width='100%'" +
+                    " height='" + ($('#layui-body-content').height() - 90) + "'></iframe>";
                 var data_id = othis.attr("data-id");
                 var title = othis.html();
 
-                var lay_arr = new Array();
+                var lay_arr = [];
                 var has_id = 0;
                 $(".layui-tab-title li").each(function () {
                     lay_arr.push($(this).attr('lay-id'));

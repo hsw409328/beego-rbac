@@ -9,11 +9,6 @@ type LoginController struct {
 }
 
 func (this *LoginController) Get() {
-	_, err := this.CheckLogin()
-	if err {
-		this.Redirect("/", 302)
-		this.StopRun()
-	}
 	this.TplName = "login.html"
 }
 
@@ -27,7 +22,8 @@ func (this *LoginController) LoginSubmit() {
 		this.ServeJSON()
 	} else {
 		this.SetSession("LoginUser", result)
-		this.SessionRbac(result.Id)
+		this.SessionRbacNav(result.Id)
+		this.SessionRbacAll(result.Id)
 		this.Data["json"] = map[string]string{"code": "0", "error_msg": "登录成功，跳转中..."}
 		this.ServeJSON()
 	}

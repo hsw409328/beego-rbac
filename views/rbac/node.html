@@ -86,7 +86,7 @@
     </form>
 </div>
 
-<table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+<table class="layui-hide" id="tableId" lay-filter="tableId" style="height: 100%;!important;"></table>
 
 <script type="text/html" id="operationTpl">
     <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">编辑</a>
@@ -94,137 +94,148 @@
 </script>
 
 <script type="text/html" id="enableTpl">
-{{# if (d.Status==0){ }}
-<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
-{{# } }}
-{{# if (d.Status==1){ }}
-<a class="layui-btn layui-btn-xs">已启用</a>
-{{# } }}
+    {{# if (d.Status==0){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+    {{# } }}
+    {{# if (d.Status==1){ }}
+    <a class="layui-btn layui-btn-xs">已启用</a>
+    {{# } }}
 </script>
 
 <script type="text/html" id="showTpl">
-{{# if (d.IsShow==0){ }}
-<a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
-{{# } }}
-{{# if (d.IsShow==1){ }}
-<a class="layui-btn layui-btn-xs">已启用</a>
-{{# } }}
+    {{# if (d.IsShow==0){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs">未启用</a>
+    {{# } }}
+    {{# if (d.IsShow==1){ }}
+    <a class="layui-btn layui-btn-xs">已启用</a>
+    {{# } }}
 </script>
 
 <script type="text/html" id="titleTpl">
-{{# if (d.Level==3){ }}
-<a class="layui-btn layui-btn-primary layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
-{{# } }}
-{{# if (d.Level==2){ }}
-<a class="layui-btn layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
-{{# } }}
-{{# if (d.Level==1){ }}
-<a class="layui-btn layui-btn-warm  layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
-{{# } }}
+    {{# if (d.Level==3){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+    {{# } }}
+    {{# if (d.Level==2){ }}
+    <a class="layui-btn layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+    {{# } }}
+    {{# if (d.Level==1){ }}
+    <a class="layui-btn layui-btn-warm  layui-btn-xs" style="margin-left: {{d.Level*20}}px">{{d.Title}}</a>
+    {{# } }}
 </script>
 
 <script type="text/html" id="levelTpl">
-{{# if (d.Level==3){ }}
-<a class="layui-btn layui-btn-primary layui-btn-xs">操作</a>
-{{# } }}
-{{# if (d.Level==2){ }}
-<a class="layui-btn layui-btn-xs">模块</a>
-{{# } }}
-{{# if (d.Level==1){ }}
-<a class="layui-btn layui-btn-warm  layui-btn-xs">项目</a>
-{{# } }}
+    {{# if (d.Level==3){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs">操作</a>
+    {{# } }}
+    {{# if (d.Level==2){ }}
+    <a class="layui-btn layui-btn-xs">模块</a>
+    {{# } }}
+    {{# if (d.Level==1){ }}
+    <a class="layui-btn layui-btn-warm  layui-btn-xs">项目</a>
+    {{# } }}
 </script>
 
 <script>
-layui.use(['form', 'table'], function () {
-    var table = layui.table;
-    var form = layui.form;
-    var $ = layui.jquery;
-    $('#addDivBtn').click(function () {
-        $('input[name="id"]').val("");
-        $('button[type="reset"]').click();
-        layer.open({
-            type: 1,
-            area: "500px",
-            title: "添加权限",
-            content: $('#addFormDiv')
+    layui.use(['form', 'table'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var $ = layui.jquery;
+        $('#addDivBtn').click(function () {
+            $('input[name="id"]').val("");
+            $('button[type="reset"]').click();
+            layer.open({
+                type: 1,
+                area: "500px",
+                title: "添加权限",
+                content: $('#addFormDiv')
+            });
+        });
+
+        //监听提交
+        form.on('submit(roleAddBtn)', function (data) {
+            if (typeof (data.field.status) == 'undefined') {
+                data.field.status = 0;
+            } else {
+                data.field.status = 1;
+            }
+            $.post('/NodeAdd', data.field, function (data) {
+                if (data.code == 0) {
+                    layer.closeAll();
+                    layer.msg("添加成功", {"icon": 1});
+                    table.reload('tableId', {});
+                } else {
+                    layer.msg("操作失败，你可能没有权限", {"icon": 2});
+                }
+            });
+            return false;
+        });
+
+        table.render({
+            elem: '#tableId'
+            , url: '/NodeListJson'
+            , height: "500"
+            , cols: [[
+                {field: 'Id', title: 'ID', sort: true}
+                , {field: 'Name', title: '英文名称'}
+                , {field: 'Title', title: '中文名称', templet: "#titleTpl"}
+                // , {field: 'Pid', title: '父级'}
+                , {field: 'Level', title: '层次', templet: "#levelTpl"}
+                , {field: 'Sort', title: '排序'}
+                , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
+                , {field: 'IsShow', title: '是否显示', templet: "#showTpl"}
+                , {field: 'Remark', title: '备注'}
+                , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
+            ]]
+            , page: false
+            , limit: 1000
+        });
+
+        table.on('tool(tableId)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+
+            if (layEvent == "edit") {
+                $('button[type="reset"]').click();
+                layer.open({
+                    type: 1,
+                    area: "500px",
+                    title: "修改权限",
+                    content: $('#addFormDiv')
+                });
+                $('input[name="id"]').val(data.Id);
+                $('select[name="pid"]').val(data.Pid);
+                $('select[name="level"]').val(data.Level);
+                $('input[name="name"]').val(data.Name);
+                $('input[name="title"]').val(data.Title);
+                $('input[name="sort"]').val(data.Sort);
+                if (data.Status == 0) {
+                    $('input[name="status"]').attr('checked', false);
+                } else {
+                    $('input[name="status"]').attr('checked', true);
+                }
+                if (data.IsShow == 0) {
+                    $('input[name="is_show"]').attr('checked', false);
+                } else {
+                    $('input[name="is_show"]').attr('checked', true);
+                }
+
+                $('input[name="remark"]').val(data.Remark);
+                form.render("select");
+                form.render("checkbox");
+            }
+            if (layEvent == "delete") {
+                $.post('/NodeDelete', {"id": data.Id}, function (data) {
+                    if (data.code == 0) {
+                        layer.closeAll();
+                        layer.msg("删除成功", {"icon": 1});
+                        table.reload('tableId', {});
+                    } else {
+                        layer.msg("操作失败，你可能没有权限", {"icon": 2});
+                    }
+                })
+            }
         });
     });
-
-    //监听提交
-form.on('submit(roleAddBtn)', function (data) {
-if (typeof(data.field.status) == 'undefined') {
-    data.field.status = 0;
-} else {
-    data.field.status = 1;
-}
-    $.post('/NodeAdd', data.field, function (data) {
-        layer.closeAll();
-        window.location.reload();
-    });
-    return false;
-});
-
-table.render({
-    elem: '#tableId'
-    , url: '/NodeListJson'
-    , cols: [[
-    {field: 'Id', title: 'ID', sort: true}
-    , {field: 'Name', title: '英文名称'}
-    , {field: 'Title', title: '中文名称', templet: "#titleTpl"}
-    // , {field: 'Pid', title: '父级'}
-    , {field: 'Level', title: '层次', templet: "#levelTpl"}
-    , {field: 'Sort', title: '排序'}
-    , {field: 'Status', title: '是否启用', templet: "#enableTpl"}
-    , {field: 'IsShow', title: '是否显示', templet: "#showTpl"}
-    , {field: 'Remark', title: '备注'}
-    , {fixed: 'right', width: 160, toolbar: '#operationTpl'}
-]]
-    , page: false
-    ,limit: 1000
-});
-
-table.on('tool(tableId)', function (obj) {
-    var data = obj.data;
-    var layEvent = obj.event;
-    var tr = obj.tr;
-
-if (layEvent == "edit") {
-    $('button[type="reset"]').click();
-    layer.open({
-        type: 1,
-        area: "500px",
-        title: "修改权限",
-        content: $('#addFormDiv')
-    });
-    $('input[name="id"]').val(data.Id);
-    $('select[name="pid"]').val(data.Pid);
-    $('select[name="level"]').val(data.Level);
-    $('input[name="name"]').val(data.Name);
-    $('input[name="title"]').val(data.Title);
-    $('input[name="sort"]').val(data.Sort);
-    if (data.Status == 0) {
-        $('input[name="status"]').attr('checked', false);
-    } else {
-        $('input[name="status"]').attr('checked', true);
-    }
-if (data.IsShow == 0) {
-    $('input[name="is_show"]').attr('checked', false);
-} else {
-    $('input[name="is_show"]').attr('checked', true);
-}
-
-    $('input[name="remark"]').val(data.Remark);
-    form.render("select");
-    form.render("checkbox");
-}
-if (layEvent == "delete") {
-$.post('/NodeDelete', {"id": data.Id}, function (data) {
-    layer.msg("删除成功", {"icon": 1});
-table.reload('tableId', {});
-})
-}
-});
-});
 </script>
 [[[template "public/foot.html" .]]]

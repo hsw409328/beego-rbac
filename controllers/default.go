@@ -3,6 +3,7 @@ package controllers
 import (
 	"beego-rbac/models"
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/hsw409328/gofunc"
 	"strconv"
 	"strings"
 )
@@ -28,19 +29,13 @@ func (this *MainController) JsonEncode(code int, msg string, data interface{}, c
 }
 
 func (this *MainController) Get() {
-	info, err := this.CheckLogin()
-	if !err {
-		this.Redirect("/login", 302)
-		this.StopRun()
-	}
+	info, _ := this.CheckLogin()
 	this.Data["LeftNavResult"] = this.GetSession("LeftNavResult")
 	this.Data["LoginUser"] = info
 	this.TplName = "index.html"
 }
 
 func (this *MainController) RoleList() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []models.RbacNode
 	M.Object().QueryTable(nodeModel).OrderBy("sort").All(&result)
 	//每次调用之前，请先清空resultTreeNode,防止重复添加
@@ -51,16 +46,12 @@ func (this *MainController) RoleList() {
 }
 
 func (this *MainController) RoleListJson() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []models.RbacRole
 	n, _ := M.Object().QueryTable("rbac_role").All(&result)
 	this.JsonEncode(0, "success", result, int(n))
 }
 
 func (this *MainController) RoleAdd() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	id, _ := this.GetInt("id")
 	name := this.GetString("name")
 	pid, _ := this.GetInt("pid")
@@ -91,8 +82,6 @@ func (this *MainController) RoleAdd() {
 }
 
 func (this *MainController) RoleDelete() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	id, _ := this.GetInt("id")
 	result := models.RbacRole{Id: id}
 	_, err := M.Object().Delete(&result)
@@ -104,8 +93,6 @@ func (this *MainController) RoleDelete() {
 }
 
 func (this *MainController) NodeList() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []models.RbacNode
 	_, err := M.Object().QueryTable("rbac_node").Filter("level__in", []int{1, 2}).All(&result, "Id", "Name", "Title", "Level")
 	if err != nil {
@@ -116,8 +103,6 @@ func (this *MainController) NodeList() {
 }
 
 func (this *MainController) NodeListJson() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []models.RbacNode
 	n, _ := M.Object().QueryTable("rbac_node").OrderBy("sort").All(&result)
 	//每次调用之前，请先清空resultTreeNode,防止重复添加
@@ -137,8 +122,6 @@ func (this *MainController) TreeNodeRecursion(data []models.RbacNode, pid int) [
 }
 
 func (this *MainController) NodeAdd() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	this.CheckRbacAll("RoleList")
 	id, _ := this.GetInt("id")
 	name := this.GetString("name")
@@ -178,8 +161,6 @@ func (this *MainController) NodeAdd() {
 }
 
 func (this *MainController) NodeDelete() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	id, _ := this.GetInt("id")
 	result := models.RbacNode{Id: id}
 	_, err := M.Object().Delete(&result)
@@ -191,8 +172,6 @@ func (this *MainController) NodeDelete() {
 }
 
 func (this *MainController) UserList() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []models.RbacRole
 	M.Object().QueryTable(roleModel).Filter("status", 1).All(&result)
 	this.Data["RoleResult"] = result
@@ -200,8 +179,6 @@ func (this *MainController) UserList() {
 }
 
 func (this *MainController) UserListJson() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	var result []orm.Params
 	lim, _ := this.GetInt("limit")
 	page, _ := this.GetInt("page")
@@ -217,8 +194,6 @@ func (this *MainController) UserListJson() {
 }
 
 func (this *MainController) UserAdd() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	id, _ := this.GetInt("id")
 	username := this.GetString("username")
 	status, _ := this.GetInt("status")
@@ -244,7 +219,7 @@ func (this *MainController) UserAdd() {
 		}
 	}
 
-	result := models.RbacUser{Username: username, Password: password, Status: status}
+	result := models.RbacUser{Username: username, Password: password, Status: status, Logintime: gofunc.CurrentTime()}
 	uid, err := M.Object().Insert(&result)
 	if err != nil {
 		this.JsonEncode(101, "insert failed", nil, 0)
@@ -255,8 +230,6 @@ func (this *MainController) UserAdd() {
 }
 
 func (this *MainController) UserDelete() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	id, _ := this.GetInt("id")
 	result := models.RbacUser{Id: id}
 	_, err := M.Object().Delete(&result)
@@ -270,8 +243,6 @@ func (this *MainController) UserDelete() {
 }
 
 func (this *MainController) AccessListJson() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	roleid, _ := this.GetInt("role_id")
 	result := []models.RbacAccess{}
 	n, err := M.Object().QueryTable(accessModel).Filter("role_id", roleid).All(&result, "Id", "RoleId", "NodeId", "Level", "Module")
@@ -282,8 +253,6 @@ func (this *MainController) AccessListJson() {
 }
 
 func (this *MainController) AccessAdd() {
-	_, action := this.GetControllerAndAction()
-	this.CheckRbacAll(action)
 	roleid, _ := this.GetInt("role_id")
 	if roleid == 0 {
 		this.JsonEncode(0, "failed", nil, 0)

@@ -3,7 +3,7 @@
         <div class="layui-logo">RBAC 权限管理系统</div>
         <ul class="layui-nav layui-layout-right">
             <li class="layui-nav-item">
-                <a href="javascript:;">
+                <a href="javascript:">
                     <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
                     [[[.LoginUser.Username]]]
                 </a>
@@ -18,25 +18,25 @@
             <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
             <ul class="layui-nav layui-nav-tree" lay-filter="test">
                 [[[range $k,$v := .LeftNavResult ]]]
-                    [[[if eq $v.level "2"]]]
-                        [[[if eq $k 0]]]
-                    <li class="layui-nav-item layui-nav-itemed">
-                        <a class="" href="javascript:;">[[[$v.title]]]</a>
-                        <dl class="layui-nav-child">
-                            [[[else]]]
-                        </dl>
-                    </li>
-                    <li class="layui-nav-item layui-nav-itemed">
-                        <a class="" href="javascript:;">[[[$v.title]]]</a>
-                        <dl class="layui-nav-child">
+                [[[if eq $v.level "2"]]]
+                [[[if eq $k 0]]]
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:">[[[$v.title]]]</a>
+                    <dl class="layui-nav-child">
+                        [[[else]]]
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:">[[[$v.title]]]</a>
+                    <dl class="layui-nav-child">
                         [[[end]]]
-                    [[[else if eq $v.level "3"]]]
-                    <dd><a href="javascript:;" class="site-demo-active" data-type="tabAdd"
-                           data-src="/[[[$v.name]]]" data-id="[[[$v.id]]]">[[[$v.title]]]</a></dd>
-                    [[[end]]]
-                [[[end]]]
-                        </dl>
-                    </li>
+                        [[[else if eq $v.level "3"]]]
+                        <dd><a href="javascript:" class="site-demo-active" data-type="tabAdd"
+                               data-src="[[[$v.name]]]" data-id="[[[$v.id]]]">[[[$v.title]]]</a></dd>
+                        [[[end]]]
+                        [[[end]]]
+                    </dl>
+                </li>
             </ul>
         </div>
     </div>
