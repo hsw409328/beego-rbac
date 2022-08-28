@@ -161,7 +161,7 @@
             $.post('/NodeAdd', data.field, function (data) {
                 if (data.code == 0) {
                     layer.closeAll();
-                    layer.msg("添加成功", {"icon": 1});
+                    layer.msg("操作成功", {"icon": 1});
                     table.reload('tableId', {});
                 } else {
                     layer.msg("操作失败，你可能没有权限", {"icon": 2});
