@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
 	"beego-rbac/models"
-	"github.com/astaxie/beego/orm"
+	beego "github.com/beego/beego/v2/adapter"
+	"github.com/beego/beego/v2/client/orm"
 	"strconv"
 )
 
@@ -38,7 +38,7 @@ func (this *BaseController) SessionRbac(id int) {
 func (this *BaseController) TreeNodeRecursion(data []orm.Params, pid int) []orm.Params {
 	for _, v := range data {
 		tmpPid, _ := strconv.Atoi(v["pid"].(string))
-		if (tmpPid == pid) {
+		if tmpPid == pid {
 			leftTreeResult = append(leftTreeResult, v)
 			tmpId, _ := strconv.Atoi(v["id"].(string))
 			this.TreeNodeRecursion(data, tmpId)
@@ -54,7 +54,7 @@ func (this *BaseController) CheckRbac(module string) bool {
 	}
 	returnResult := false
 	for _, v := range tmpResult.([]orm.Params) {
-		if (v["name"].(string) == module) {
+		if v["name"].(string) == module {
 			returnResult = true
 			break
 		}

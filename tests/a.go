@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/astaxie/beego/orm"
+	"github.com/beego/beego/v2/adapter/orm"
 	"log"
 )
 

@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"beego-rbac/models"
+	"github.com/beego/beego/v2/client/orm"
 	"strconv"
-	"github.com/astaxie/beego/orm"
 	"strings"
 )
 
@@ -128,7 +128,7 @@ func (this *MainController) NodeListJson() {
 
 func (this *MainController) TreeNodeRecursion(data []models.RbacNode, pid int) []models.RbacNode {
 	for _, v := range data {
-		if (v.Pid == pid) {
+		if v.Pid == pid {
 			resultTreeNode = append(resultTreeNode, v)
 			this.TreeNodeRecursion(data, v.Id)
 		}
