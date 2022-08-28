@@ -48,7 +48,7 @@ superadmin = admin
 
 ```
 #默认前4个不允许修改，否则会重定向，在逗号后面增加自己编写的api或者页面地址
-filterExcludeURL = /404,/exit,/login,/LoginSubmit,/test/*
+filterExcludeURL = /404,/exit,/login,/LoginSubmit
 ```
 
 ## 3、配置只鉴权登录，不鉴权详细的页面和路由
@@ -79,4 +79,14 @@ filterOnlyLoginCheckURL = /,/testCheckLogin/test
         添加和编辑的时候可以修改绑定的角色
 ```
 
+# 下一个版本规划
+
+```
+1、拦截器自定方法支持泛型URL配置
+2、登录及权限支持中间件方式
+3、docker镜像部署
+4、支持ckeditor在线编辑器
+5、支持用户独立的权限配置
+6、组织机构管理
+```
 
