@@ -122,7 +122,6 @@ func (this *MainController) TreeNodeRecursion(data []models.RbacNode, pid int) [
 }
 
 func (this *MainController) NodeAdd() {
-	this.CheckRbacAll("RoleList")
 	id, _ := this.GetInt("id")
 	name := this.GetString("name")
 	title := this.GetString("title")

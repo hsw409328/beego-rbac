@@ -7,14 +7,15 @@ import (
 	"strconv"
 )
 
+var (
+	leftTreeResultMap = make(map[int][]orm.Params)
+)
+
 type BaseController struct {
 	beego.Controller
 }
 
-var (
-	leftTreeResult = []orm.Params{}
-)
-
+// 设置当前登录用户的可以查看的页面权限
 func (this *BaseController) SessionRbacNav(id int) {
 	//根据用户ID查询出角色
 	result := models.RbacRoleUser{UserId: id}
@@ -30,11 +31,13 @@ func (this *BaseController) SessionRbacNav(id int) {
 		" on t.node_id=t1.id " +
 		" where t1.status=1 and t.role_id='" + strconv.Itoa(roleResult.Id) + "' and t1.is_show=1 ").Values(&accessResult)
 
-	leftTreeResult = []orm.Params{}
-	tmpResult := this.TreeNodeRecursion(accessResult, 0)
+	leftTreeResultMap[id] = []orm.Params{}
+	tmpResult := this.TreeNodeRecursion(id, accessResult, 0)
 	this.SetSession("LeftNavResult", tmpResult)
+	delete(leftTreeResultMap, id)
 }
 
+// 设置当前登录用户的所有权限
 func (this *BaseController) SessionRbacAll(id int) {
 	//根据用户ID查询出角色
 	result := models.RbacRoleUser{UserId: id}
@@ -50,36 +53,22 @@ func (this *BaseController) SessionRbacAll(id int) {
 		" on t.node_id=t1.id " +
 		" where t1.status=1 and t.role_id='" + strconv.Itoa(roleResult.Id) + "' ").Values(&accessResult)
 
-	leftTreeResult = []orm.Params{}
-	tmpResult := this.TreeNodeRecursion(accessResult, 0)
+	leftTreeResultMap[id] = []orm.Params{}
+	tmpResult := this.TreeNodeRecursion(id, accessResult, 0)
 	this.SetSession("LoginUserAllRBACResult", tmpResult)
+	delete(leftTreeResultMap, id)
 }
 
-func (this *BaseController) TreeNodeRecursion(data []orm.Params, pid int) []orm.Params {
+func (this *BaseController) TreeNodeRecursion(userId int, data []orm.Params, pid int) []orm.Params {
 	for _, v := range data {
 		tmpPid, _ := strconv.Atoi(v["pid"].(string))
 		if tmpPid == pid {
-			leftTreeResult = append(leftTreeResult, v)
+			leftTreeResultMap[userId] = append(leftTreeResultMap[userId], v)
 			tmpId, _ := strconv.Atoi(v["id"].(string))
-			this.TreeNodeRecursion(data, tmpId)
+			this.TreeNodeRecursion(userId, data, tmpId)
 		}
 	}
-	return leftTreeResult
-}
-
-func (this *BaseController) CheckRbac(module string) bool {
-	tmpResult := this.GetSession("LeftNavResult")
-	if tmpResult == nil {
-		return false
-	}
-	returnResult := false
-	for _, v := range tmpResult.([]orm.Params) {
-		if v["name"].(string) == module {
-			returnResult = true
-			break
-		}
-	}
-	return returnResult
+	return leftTreeResultMap[userId]
 }
 
 func (this *BaseController) CheckLogin() (interface{}, bool) {
@@ -88,22 +77,4 @@ func (this *BaseController) CheckLogin() (interface{}, bool) {
 		return nil, false
 	}
 	return userData, true
-}
-
-func (this *BaseController) CheckRbacAll(module string) {
-	info, err := this.CheckLogin()
-	infoResult := info.(models.RbacUser)
-	if !err {
-		this.Redirect("/login", 302)
-		this.StopRun()
-	}
-	u := beego.AppConfig.String("superadmin")
-	if infoResult.Username == u {
-		return
-	}
-	err = this.CheckRbac(module)
-	if !err {
-		this.Redirect("/404", 302)
-		this.StopRun()
-	}
 }
